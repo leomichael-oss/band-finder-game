@@ -82,6 +82,10 @@
         margin-top: 20px;
       }
 
+      .controls + .controls {
+        margin-top: 12px;
+      }
+
       button {
         border: none;
         border-radius: 12px;
@@ -99,9 +103,14 @@
 
       .love { background: linear-gradient(135deg, #ffc46b, var(--accent)); }
       .like { background: linear-gradient(135deg, #9cf4ff, var(--accent-2)); }
+      .soso { background: linear-gradient(135deg, #d9e4f5, #b3c4da); }
       .dont { background: linear-gradient(135deg, #c3cedf, #869bb6); }
       .hate { background: linear-gradient(135deg, #ff8f8f, var(--bad)); }
       .never { background: linear-gradient(135deg, #c8fbdc, var(--good)); }
+
+      .full-width {
+        grid-column: 1 / -1;
+      }
 
       .status {
         margin-top: 18px;
@@ -194,9 +203,12 @@
         <div class="controls">
           <button class="love" data-rating="love">LOVE</button>
           <button class="like" data-rating="like">LIKE</button>
+          <button class="soso" data-rating="soso">SO-SO</button>
           <button class="dont" data-rating="dont">DON'T LIKE</button>
           <button class="hate" data-rating="hate">HATE</button>
-          <button class="never" data-rating="never">NEVER HEARD OF</button>
+        </div>
+        <div class="controls">
+          <button class="never full-width" data-rating="never">NEVER HEARD OF</button>
         </div>
 
         <div class="status">
@@ -370,6 +382,7 @@
       const ratingWeights = {
         love: 2.0,
         like: 1.0,
+        soso: 0.2,
         dont: -0.6,
         hate: -1.4,
         never: 0.0
