@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Band Finder Game</title>
+    <title>Futures Dashboard</title>
     <style>
       :root {
         --bg: #0b0f14;
@@ -14,6 +14,7 @@
         --muted: #9fb2cc;
         --bad: #ff5e5e;
         --good: #6ee7a8;
+        --line: #22314a;
       }
 
       * { box-sizing: border-box; }
@@ -30,7 +31,7 @@
       }
 
       .wrap {
-        width: min(920px, 100%);
+        width: min(980px, 100%);
       }
 
       .header {
@@ -65,7 +66,7 @@
         gap: 16px;
         padding: 24px;
         border-radius: 14px;
-        border: 1px solid #22314a;
+        border: 1px solid var(--line);
         background: linear-gradient(135deg, #151e2d 0%, #101826 100%);
       }
 
@@ -100,6 +101,7 @@
       }
 
       button:hover { transform: translateY(-2px); }
+
       button:disabled {
         opacity: 0.55;
         cursor: not-allowed;
@@ -114,9 +116,7 @@
       .hate { background: linear-gradient(135deg, #ff8f8f, var(--bad)); }
       .never { background: linear-gradient(135deg, #c8fbdc, var(--good)); }
 
-      .full-width {
-        grid-column: 1 / -1;
-      }
+      .full-width { grid-column: 1 / -1; }
 
       .status {
         margin-top: 18px;
@@ -132,7 +132,7 @@
         background: #1a2435;
         border-radius: 999px;
         overflow: hidden;
-        border: 1px solid #22314a;
+        border: 1px solid var(--line);
         flex: 1;
         margin-left: 12px;
       }
@@ -156,7 +156,7 @@
       .rec {
         padding: 16px;
         border-radius: 12px;
-        border: 1px solid #22314a;
+        border: 1px solid var(--line);
         background: rgba(14, 20, 32, 0.85);
       }
 
@@ -169,6 +169,25 @@
         margin: 0;
         color: var(--muted);
         font-size: 13px;
+      }
+
+      .rec .song-row {
+        margin-top: 10px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .rec .song-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: 8px;
+      }
+
+      .song-btn {
+        padding: 10px;
+        font-size: 12px;
+        border-radius: 10px;
+        background: #dfe7f2;
       }
 
       .footer {
@@ -184,9 +203,7 @@
         border: 1px solid #2a3c56;
       }
 
-      .hidden {
-        display: none;
-      }
+      .hidden { display: none; }
 
       @media (max-width: 640px) {
         .header { flex-direction: column; align-items: flex-start; }
@@ -199,8 +216,8 @@
     <div class="wrap">
       <div class="header">
         <div>
-          <div class="title">Band Finder Game</div>
-          <div class="subtitle">Rate bands. We learn. We recommend the “never heard” ones you’ll love.</div>
+          <div class="title">Futures Dashboard</div>
+          <div class="subtitle">Rate artists. Keep refining. Get better recs over time.</div>
         </div>
         <div id="scoreBox" class="subtitle"></div>
       </div>
@@ -315,7 +332,7 @@
         { name: "Phoebe Bridgers", song: "Kyoto", tags: ["indie", "2010s", "folk"] },
         { name: "Mitski", song: "Nobody", tags: ["indie", "2010s", "art pop"] },
         { name: "SZA", song: "Good Days", tags: ["r&b", "2010s", "alt"] },
-        { name: "Bad Bunny", song: "Tití Me Preguntó", tags: ["latin", "2010s", "reggaeton"] },
+        { name: "Bad Bunny", song: "Titi Me Pregunto", tags: ["latin", "2010s", "reggaeton"] },
         { name: "Rosalia", song: "MALAMENTE", tags: ["latin", "2010s", "experimental"] },
         { name: "BTS", song: "Dynamite", tags: ["k-pop", "2010s", "pop"] },
         { name: "BLACKPINK", song: "How You Like That", tags: ["k-pop", "2010s", "pop"] },
@@ -394,15 +411,21 @@
         love: 2.0,
         like: 1.0,
         soso: 0.2,
-        dont: -0.6,
-        hate: -1.4,
+        dont: -1.0,
+        hate: -2.0,
         never: 0.0
       };
+
+      const RECO_MIN_POS_TAGS = 2;
+      const RECO_MIN_SCORE = 0.3;
+      const RECO_NEG_BLOCK = -1.2;
+      const SONG_WEIGHT_MULTIPLIER = 0.6;
 
       const state = {
         index: 0,
         order: [],
         ratings: new Map(),
+        songRatings: new Map(),
         tagScores: new Map(),
         neverHeard: new Set(),
         ratedCount: 0,
@@ -431,6 +454,7 @@
         state.order = shuffle(bands.map((_, i) => i));
         state.index = 0;
         state.ratings.clear();
+        state.songRatings.clear();
         state.tagScores.clear();
         state.neverHeard.clear();
         state.history = [];
@@ -464,16 +488,16 @@
         backBtn.disabled = state.history.length === 0;
       }
 
-      function applyRating(band, rating) {
-        const weight = ratingWeights[rating];
+      function applyRating(band, rating, multiplier = 1) {
+        const weight = ratingWeights[rating] * multiplier;
         for (const tag of band.tags) {
           const current = state.tagScores.get(tag) ?? 0;
           state.tagScores.set(tag, current + weight);
         }
       }
 
-      function removeRating(band, rating) {
-        const weight = ratingWeights[rating];
+      function removeRating(band, rating, multiplier = 1) {
+        const weight = ratingWeights[rating] * multiplier;
         for (const tag of band.tags) {
           const current = state.tagScores.get(tag) ?? 0;
           const next = current - weight;
@@ -494,7 +518,7 @@
         } else {
           state.neverHeard.delete(band.name);
         }
-        applyRating(band, rating);
+        applyRating(band, rating, 1);
         state.history.push({ orderIndex: state.index, bandName: band.name, rating });
         state.index += 1;
         state.ratedCount += 1;
@@ -506,11 +530,14 @@
       }
 
       function scoreBand(band) {
-        let score = 0;
-        for (const tag of band.tags) {
-          score += state.tagScores.get(tag) ?? 0;
-        }
-        return score / band.tags.length;
+        const tagValues = band.tags.map(tag => state.tagScores.get(tag) ?? 0);
+        const base = tagValues.reduce((a, b) => a + b, 0) / band.tags.length;
+        const posTags = tagValues.filter(val => val > 0.3).length;
+        const negBlocks = tagValues.filter(val => val <= RECO_NEG_BLOCK).length;
+        let score = base + posTags * 0.15;
+        if (negBlocks > 0) score -= 2.0;
+        if (posTags < RECO_MIN_POS_TAGS) score -= 0.6;
+        return score;
       }
 
       function showRecommendations() {
@@ -528,16 +555,21 @@
         const hasRatings = state.tagScores.size > 0;
         header.innerHTML = `
           <h4>Recommendations</h4>
-          <p>${totalNever === 0 ? "You rated every band." : `From ${totalNever} never-heard bands.`} ${hasRatings ? "Sorted by your taste profile." : "No taste profile yet — showing random picks."}</p>
+          <p>${totalNever === 0 ? "You rated every artist." : `From ${totalNever} not-familiar artists.`} ${hasRatings ? "Sorted by your taste profile." : "No taste profile yet — showing random picks."}</p>
         `;
         results.appendChild(header);
 
-        const picks = (hasRatings ? scored : shuffle(neverList).map(b => ({ ...b, score: 0 }))).slice(0, 8);
+        let picks = (hasRatings ? scored : shuffle(neverList).map(b => ({ ...b, score: 0 })));
+        if (hasRatings) {
+          const strong = picks.filter(b => b.score >= RECO_MIN_SCORE);
+          picks = strong.length >= 5 ? strong : picks;
+        }
+        picks = picks.slice(0, 8);
 
         if (picks.length === 0) {
           const empty = document.createElement("div");
           empty.className = "rec";
-          empty.innerHTML = "<h4>No picks left</h4><p>Mark a few bands as “Never heard of” to get recommendations.</p>";
+          empty.innerHTML = "<h4>No picks yet</h4><p>Mark a few artists as “Not familiar” to get recommendations.</p>";
           results.appendChild(empty);
           return;
         }
@@ -551,7 +583,22 @@
           const query = encodeURIComponent(`${band.name} ${song}`);
           const apple = `https://music.apple.com/us/search?term=${query}`;
           const spotify = `https://open.spotify.com/search/${query}`;
-          item.innerHTML = `<h4>${band.name}</h4><p>${tagLine}${scoreText ? ` — ${scoreText}` : ""}</p><p>Try: <strong>${song}</strong> · <a href="${apple}" target="_blank" rel="noopener noreferrer">Apple Music</a> · <a href="${spotify}" target="_blank" rel="noopener noreferrer">Spotify</a></p>`;
+          const ratedSong = state.songRatings.get(band.name);
+          const disabled = ratedSong ? "disabled" : "";
+          item.innerHTML = `
+            <h4>${band.name}</h4>
+            <p>${tagLine}${scoreText ? ` — ${scoreText}` : ""}</p>
+            <div class="song-row">
+              <p>Try: <strong>${song}</strong> · <a href="${apple}" target="_blank" rel="noopener noreferrer">Apple Music</a> · <a href="${spotify}" target="_blank" rel="noopener noreferrer">Spotify</a></p>
+              <div class="song-actions">
+                <button class="song-btn" data-song-rating="love" data-band="${band.name}" ${disabled}>LOVE SONG</button>
+                <button class="song-btn" data-song-rating="like" data-band="${band.name}" ${disabled}>LIKE SONG</button>
+                <button class="song-btn" data-song-rating="soso" data-band="${band.name}" ${disabled}>SO-SO SONG</button>
+                <button class="song-btn" data-song-rating="dont" data-band="${band.name}" ${disabled}>DON'T LIKE SONG</button>
+                <button class="song-btn" data-song-rating="hate" data-band="${band.name}" ${disabled}>HATE SONG</button>
+              </div>
+            </div>
+          `;
           results.appendChild(item);
         }
       }
@@ -562,7 +609,7 @@
         const bandIndex = bands.findIndex(b => b.name === last.bandName);
         if (bandIndex !== -1) {
           const band = bands[bandIndex];
-          removeRating(band, last.rating);
+          removeRating(band, last.rating, 1);
           state.ratings.delete(band.name);
           if (last.rating === "never") {
             state.neverHeard.delete(band.name);
@@ -584,6 +631,20 @@
       finishBtn.addEventListener("click", showRecommendations);
       resetBtn.addEventListener("click", init);
       backBtn.addEventListener("click", handleBack);
+
+      results.addEventListener("click", (event) => {
+        const btn = event.target.closest("[data-song-rating]");
+        if (!btn) return;
+        const bandName = btn.getAttribute("data-band");
+        const rating = btn.getAttribute("data-song-rating");
+        if (!bandName || !rating) return;
+        if (state.songRatings.has(bandName)) return;
+        const band = bands.find(b => b.name === bandName);
+        if (!band) return;
+        state.songRatings.set(bandName, rating);
+        applyRating(band, rating, SONG_WEIGHT_MULTIPLIER);
+        showRecommendations();
+      });
 
       init();
     </script>
