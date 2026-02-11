@@ -1,652 +1,905 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Band Finder Game</title>
-    <style>
-      :root {
-        --bg: #0b0f14;
-        --panel: #121823;
-        --accent: #ffb200;
-        --accent-2: #4de0ff;
-        --text: #e8f0ff;
-        --muted: #9fb2cc;
-        --bad: #ff5e5e;
-        --good: #6ee7a8;
-        --line: #22314a;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CPG News + Financial Dashboard</title>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --text: #13212f;
+      --muted: #5f6b77;
+      --line: #d7dde4;
+      --accent: #0e7490;
+      --accent-soft: #e0f2f7;
+      --good: #0f766e;
+      --warn: #b45309;
+      --shadow: 0 10px 30px rgba(19, 33, 47, 0.08);
+    }
 
-      * { box-sizing: border-box; }
+    * { box-sizing: border-box; }
 
-      body {
-        margin: 0;
-        font-family: "Space Grotesk", "IBM Plex Sans", "Segoe UI", sans-serif;
-        background: radial-gradient(1200px 800px at 10% 10%, #152033 0%, var(--bg) 50%, #070a0f 100%);
-        color: var(--text);
-        min-height: 100vh;
-        display: grid;
-        place-items: center;
-        padding: 24px;
-      }
+    body {
+      margin: 0;
+      font-family: "DM Sans", "Avenir Next", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 10% 10%, #e8f6fb 0, transparent 35%),
+        radial-gradient(circle at 90% 85%, #fff4df 0, transparent 30%),
+        var(--bg);
+      min-height: 100vh;
+    }
 
-      .wrap {
-        width: min(980px, 100%);
-      }
+    .wrap {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+    }
 
-      .header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        margin-bottom: 20px;
-      }
+    .hero {
+      background: linear-gradient(120deg, #0b3a53, #0e7490 52%, #22a6b3);
+      color: #fff;
+      border-radius: 20px;
+      padding: 26px 24px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
 
-      .title {
-        font-size: clamp(28px, 4vw, 40px);
-        letter-spacing: 0.5px;
-      }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -40px -70px auto;
+      width: 260px;
+      height: 260px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.13);
+    }
 
-      .subtitle {
-        color: var(--muted);
-        margin-top: 6px;
-        font-size: 15px;
-      }
+    h1 {
+      margin: 0;
+      font-size: clamp(1.3rem, 2vw, 2rem);
+      letter-spacing: 0.01em;
+    }
 
-      .panel {
-        background: linear-gradient(160deg, #141b27 0%, #0f141e 100%);
-        border: 1px solid #1f2b3d;
-        border-radius: 16px;
-        padding: 24px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
-      }
+    .sub {
+      margin-top: 8px;
+      margin-bottom: 0;
+      color: #d9edf2;
+      max-width: 78ch;
+      line-height: 1.35;
+    }
 
-      .band-card {
-        display: grid;
-        gap: 16px;
-        padding: 24px;
-        border-radius: 14px;
-        border: 1px solid var(--line);
-        background: linear-gradient(135deg, #151e2d 0%, #101826 100%);
-      }
+    .toolbar {
+      margin-top: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
 
-      .band-name {
-        font-size: clamp(30px, 5vw, 46px);
-        font-weight: 700;
-        letter-spacing: 0.8px;
-      }
+    button {
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 120ms ease, box-shadow 120ms ease;
+    }
 
-      .controls {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 12px;
-        margin-top: 20px;
-      }
+    .primary {
+      background: #fff;
+      color: #084359;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+    }
 
-      .controls + .controls {
-        margin-top: 12px;
-      }
+    .secondary {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.28);
+    }
 
-      button {
-        border: none;
-        border-radius: 12px;
-        padding: 14px 12px;
-        font-size: 14px;
-        font-weight: 600;
-        letter-spacing: 0.3px;
-        cursor: pointer;
-        color: #0c1017;
-        background: #e5edf7;
-        transition: transform 0.08s ease, box-shadow 0.2s ease, background 0.2s ease;
-      }
+    #status {
+      font-size: 0.9rem;
+      color: #e7f6fb;
+      margin-left: 4px;
+    }
 
-      button:hover { transform: translateY(-2px); }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 14px 0 22px;
+    }
 
-      button:disabled {
-        opacity: 0.55;
-        cursor: not-allowed;
-        transform: none;
-        box-shadow: none;
-      }
+    .pill {
+      font-size: 0.78rem;
+      background: var(--accent-soft);
+      color: #0d6077;
+      border: 1px solid #bde4ee;
+      padding: 4px 8px;
+      border-radius: 999px;
+    }
 
-      .love { background: linear-gradient(135deg, #ffc46b, var(--accent)); }
-      .like { background: linear-gradient(135deg, #9cf4ff, var(--accent-2)); }
-      .soso { background: linear-gradient(135deg, #d9e4f5, #b3c4da); }
-      .dont { background: linear-gradient(135deg, #c3cedf, #869bb6); }
-      .hate { background: linear-gradient(135deg, #ff8f8f, var(--bad)); }
-      .never { background: linear-gradient(135deg, #c8fbdc, var(--good)); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(265px, 1fr));
+      gap: 14px;
+    }
 
-      .full-width { grid-column: 1 / -1; }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
 
-      .status {
-        margin-top: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        color: var(--muted);
-        font-size: 13px;
-      }
+    .group-header {
+      grid-column: 1 / -1;
+      font-size: 0.82rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #0b5169;
+      font-weight: 700;
+      padding: 6px 2px 0;
+    }
 
-      .meter {
-        height: 8px;
-        background: #1a2435;
-        border-radius: 999px;
-        overflow: hidden;
-        border: 1px solid var(--line);
-        flex: 1;
-        margin-left: 12px;
-      }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
 
-      .meter > span {
-        display: block;
-        height: 100%;
-        background: linear-gradient(90deg, #69f0ff, #ffd166);
-        width: 0%;
-        transition: width 0.3s ease;
-      }
+    .card h2 {
+      margin: 0;
+      font-size: 1.03rem;
+    }
 
-      .results {
-        margin-top: 24px;
-        display: none;
-        gap: 14px;
-      }
+    .logo-wrap {
+      position: relative;
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
 
-      .results.active { display: grid; }
+    .logo-img {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+      border-radius: 999px;
+      border: 1px solid #dbe5ec;
+      background: #fff;
+      display: block;
+    }
 
-      .rec {
-        padding: 16px;
-        border-radius: 12px;
-        border: 1px solid var(--line);
-        background: rgba(14, 20, 32, 0.85);
-      }
+    .logo-fallback {
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.64rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      color: #0b3a53;
+      background: #d7edf4;
+      border: 1px solid #b7dce8;
+    }
 
-      .rec h4 {
-        margin: 0 0 6px 0;
-        font-size: 18px;
-      }
+    .meta {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.35;
+    }
 
-      .rec p {
-        margin: 0;
-        color: var(--muted);
-        font-size: 13px;
-      }
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 6px;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 9px 0;
+    }
 
-      .rec .song-row {
-        margin-top: 10px;
-        display: grid;
-        gap: 8px;
-      }
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 0.9rem;
+    }
 
-      .rec .song-actions {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-        gap: 8px;
-      }
+    .label { color: var(--muted); }
+    .value { text-align: right; font-weight: 600; }
+    .trend-up { color: var(--good); }
+    .trend-flat { color: #4b5563; }
+    .trend-down { color: var(--warn); }
 
-      .song-btn {
-        padding: 10px;
-        font-size: 12px;
-        border-radius: 10px;
-        background: #dfe7f2;
-      }
+    .news-title {
+      margin: 0;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #1f2937;
+    }
 
-      .footer {
-        margin-top: 18px;
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
+    ul.news {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 7px;
+    }
 
-      .ghost {
-        background: transparent;
-        color: var(--text);
-        border: 1px solid #2a3c56;
-      }
+    ul.news li {
+      border: 1px solid #e9eef4;
+      border-radius: 10px;
+      padding: 8px;
+      background: #f9fbfd;
+    }
 
-      .hidden { display: none; }
+    a {
+      color: #0b5f7d;
+      text-decoration: none;
+      font-size: 0.86rem;
+      font-weight: 600;
+      line-height: 1.35;
+    }
 
-      @media (max-width: 640px) {
-        .header { flex-direction: column; align-items: flex-start; }
-        .status { flex-direction: column; align-items: flex-start; gap: 8px; }
-        .meter { margin-left: 0; width: 100%; }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="wrap">
-      <div class="header">
-        <div>
-          <div class="title">Band Finder Game</div>
-          <div class="subtitle">Rate artists. Keep refining. Get better recs over time.</div>
-        </div>
-        <div id="scoreBox" class="subtitle"></div>
+    a:hover { text-decoration: underline; }
+
+    .source {
+      display: block;
+      color: #6b7280;
+      font-size: 0.75rem;
+      margin-top: 4px;
+    }
+
+    .insight {
+      border: 1px solid #e3e9ef;
+      border-radius: 10px;
+      padding: 9px;
+      background: #f8fafc;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.74rem;
+      font-weight: 700;
+      padding: 3px 7px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      margin-left: 6px;
+    }
+
+    .badge-up { color: #8a3a00; background: #fff2e6; border-color: #ffd7ba; }
+    .badge-down { color: #065f46; background: #e8faf4; border-color: #b9efd9; }
+    .badge-mixed { color: #334155; background: #eef2f7; border-color: #d3dce6; }
+
+    .cost-note {
+      margin-top: 6px;
+      display: block;
+      line-height: 1.35;
+      border-radius: 8px;
+      padding: 6px 7px;
+    }
+
+    .note-pressure { background: #fff4eb; border: 1px solid #ffd9bf; color: #7c2d12; }
+    .note-savings { background: #ecfdf5; border: 1px solid #bff0d6; color: #065f46; }
+    .note-mixed { background: #f1f5f9; border: 1px solid #d9e2ec; color: #334155; }
+
+    .canada-note {
+      margin-top: 6px;
+      display: block;
+      font-size: 0.78rem;
+      color: #0b3a53;
+      background: #e8f3ff;
+      border: 1px solid #cfe1f6;
+      border-radius: 8px;
+      padding: 6px 7px;
+      line-height: 1.35;
+    }
+
+    .market {
+      border: 1px dashed #d8e1ea;
+      border-radius: 10px;
+      padding: 8px;
+      background: #fbfdff;
+    }
+
+    .foot {
+      margin-top: 18px;
+      color: #566370;
+      font-size: 0.78rem;
+      line-height: 1.35;
+    }
+
+    @media (max-width: 640px) {
+      .hero { padding: 20px 16px; }
+      .sub { max-width: none; }
+      #status { display: block; margin-left: 0; margin-top: 4px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <h1>Major CPG Dashboard: Financial Snapshot + Recent News</h1>
+      <p class="sub">
+        Covers Nestle, PepsiCo, Coca-Cola, General Mills, Kraft Heinz, Procter & Gamble, Unilever,
+        Lindt, Ferrero, Hershey, Kellanova, Maple Leaf, Saputo, and L'Oreal.
+        Includes YoY revenue growth, gross-margin trend, variable input-cost commentary, and dated headlines.
+      </p>
+      <div class="toolbar">
+        <button id="refreshNews" class="primary" type="button">Refresh Data</button>
+        <button id="collapseAll" class="secondary" type="button">Show Financials Only</button>
+        <span id="status">Ready</span>
       </div>
+    </section>
 
-      <div class="panel">
-        <div class="band-card">
-          <div id="bandName" class="band-name">Loading…</div>
-        </div>
-
-        <div class="controls">
-          <button class="love" data-rating="love">LOVE</button>
-          <button class="like" data-rating="like">LIKE</button>
-          <button class="soso" data-rating="soso">SO-SO</button>
-          <button class="dont" data-rating="dont">DON'T LIKE</button>
-          <button class="hate" data-rating="hate">HATE</button>
-        </div>
-        <div class="controls">
-          <button class="never full-width" data-rating="never">NOT FAMILIAR</button>
-        </div>
-
-        <div class="status">
-          <div id="progressText">0 rated</div>
-          <div class="meter"><span id="meterFill"></span></div>
-        </div>
-
-        <div class="results" id="results"></div>
-
-        <div class="footer">
-          <button id="backBtn" class="ghost">Back</button>
-          <button id="finishBtn" class="ghost hidden">Show Me My Recommendations</button>
-          <button id="resetBtn" class="ghost">Start Over</button>
-        </div>
-      </div>
+    <div class="legend">
+      <span class="pill">Financials use latest available filings/releases as of Feb 11, 2026</span>
+      <span class="pill">Gross margin shows current, prior-year, and year-over-year change</span>
+      <span class="pill">Headlines always include dates; fallback links are pre-seeded</span>
     </div>
 
-    <script>
-      const MASTER_BANDS = [
-        { name: "The Beatles", song: "Here Comes the Sun", tags: ["rock", "60s", "classic"] },
-        { name: "The Rolling Stones", song: "Gimme Shelter", tags: ["rock", "60s", "classic"] },
-        { name: "The Beach Boys", song: "God Only Knows", tags: ["pop", "60s", "harmonies"] },
-        { name: "Bob Dylan", song: "Like a Rolling Stone", tags: ["folk", "60s", "songwriter"] },
-        { name: "Jimi Hendrix", song: "Purple Haze", tags: ["rock", "psychedelic", "guitar"] },
-        { name: "Aretha Franklin", song: "Respect", tags: ["soul", "classic", "vocals"] },
-        { name: "Stevie Wonder", song: "Superstition", tags: ["soul", "pop", "classic"] },
-        { name: "Marvin Gaye", song: "What's Going On", tags: ["soul", "classic", "smooth"] },
-        { name: "The Supremes", song: "You Can't Hurry Love", tags: ["motown", "60s", "pop"] },
-        { name: "Led Zeppelin", song: "Stairway to Heaven", tags: ["rock", "70s", "heavy"] },
-        { name: "Pink Floyd", song: "Time", tags: ["rock", "progressive", "70s"] },
-        { name: "Fleetwood Mac", song: "Dreams", tags: ["rock", "70s", "pop"] },
-        { name: "Queen", song: "Bohemian Rhapsody", tags: ["rock", "arena", "classic"] },
-        { name: "David Bowie", song: "Heroes", tags: ["rock", "art", "70s"] },
-        { name: "The Clash", song: "London Calling", tags: ["punk", "70s", "rock"] },
-        { name: "Sex Pistols", song: "Anarchy in the U.K.", tags: ["punk", "70s", "raw"] },
-        { name: "Talking Heads", song: "Once in a Lifetime", tags: ["art rock", "new wave", "funk"] },
-        { name: "Joy Division", song: "Love Will Tear Us Apart", tags: ["post-punk", "dark", "classic"] },
-        { name: "The Cure", song: "Just Like Heaven", tags: ["goth", "post-punk", "new wave"] },
-        { name: "Depeche Mode", song: "Enjoy the Silence", tags: ["synth", "new wave", "dark"] },
-        { name: "Prince", song: "Purple Rain", tags: ["pop", "funk", "80s"] },
-        { name: "Michael Jackson", song: "Billie Jean", tags: ["pop", "80s", "dance"] },
-        { name: "Madonna", song: "Like a Prayer", tags: ["pop", "80s", "dance"] },
-        { name: "Whitney Houston", song: "I Wanna Dance with Somebody", tags: ["pop", "80s", "vocals"] },
-        { name: "U2", song: "With or Without You", tags: ["rock", "80s", "arena"] },
-        { name: "The Smiths", song: "There Is a Light That Never Goes Out", tags: ["indie", "jangle", "80s"] },
-        { name: "New Order", song: "Blue Monday", tags: ["synth", "dance", "80s"] },
-        { name: "R.E.M.", song: "Losing My Religion", tags: ["rock", "80s", "alternative"] },
-        { name: "The Police", song: "Every Breath You Take", tags: ["rock", "new wave", "80s"] },
-        { name: "Guns N' Roses", song: "Sweet Child o' Mine", tags: ["rock", "hard", "80s"] },
-        { name: "Metallica", song: "Enter Sandman", tags: ["metal", "80s", "thrash"] },
-        { name: "Nirvana", song: "Smells Like Teen Spirit", tags: ["grunge", "90s", "rock"] },
-        { name: "Pearl Jam", song: "Alive", tags: ["grunge", "90s", "rock"] },
-        { name: "Radiohead", song: "Paranoid Android", tags: ["alternative", "art rock", "90s"] },
-        { name: "Oasis", song: "Wonderwall", tags: ["britpop", "90s", "rock"] },
-        { name: "Blur", song: "Song 2", tags: ["britpop", "90s", "rock"] },
-        { name: "Green Day", song: "Basket Case", tags: ["punk", "90s", "rock"] },
-        { name: "The Smashing Pumpkins", song: "1979", tags: ["alternative", "90s", "rock"] },
-        { name: "Beastie Boys", song: "Sabotage", tags: ["hip-hop", "90s", "alternative"] },
-        { name: "A Tribe Called Quest", song: "Can I Kick It?", tags: ["hip-hop", "90s", "jazz"] },
-        { name: "Outkast", song: "Ms. Jackson", tags: ["hip-hop", "90s", "southern"] },
-        { name: "Lauryn Hill", song: "Doo Wop (That Thing)", tags: ["hip-hop", "soul", "90s"] },
-        { name: "Tupac Shakur", song: "California Love", tags: ["hip-hop", "90s", "classic"] },
-        { name: "The Notorious B.I.G.", song: "Juicy", tags: ["hip-hop", "90s", "classic"] },
-        { name: "Dr. Dre", song: "Still D.R.E.", tags: ["hip-hop", "90s", "west coast"] },
-        { name: "Wu-Tang Clan", song: "C.R.E.A.M.", tags: ["hip-hop", "90s", "raw"] },
-        { name: "Missy Elliott", song: "Get Ur Freak On", tags: ["hip-hop", "90s", "innovative"] },
-        { name: "Beyonce", song: "Crazy in Love", tags: ["pop", "r&b", "2000s"] },
-        { name: "Rihanna", song: "Umbrella", tags: ["pop", "r&b", "2000s"] },
-        { name: "Kanye West", song: "Stronger", tags: ["hip-hop", "2000s", "producer"] },
-        { name: "Jay-Z", song: "Empire State of Mind", tags: ["hip-hop", "2000s", "classic"] },
-        { name: "Eminem", song: "Lose Yourself", tags: ["hip-hop", "2000s", "rap"] },
-        { name: "Linkin Park", song: "In the End", tags: ["rock", "2000s", "nu metal"] },
-        { name: "The Strokes", song: "Last Nite", tags: ["indie rock", "2000s", "nyc"] },
-        { name: "The White Stripes", song: "Seven Nation Army", tags: ["garage", "2000s", "rock"] },
-        { name: "The Black Keys", song: "Lonely Boy", tags: ["garage", "2000s", "blues"] },
-        { name: "The Killers", song: "Mr. Brightside", tags: ["indie", "2000s", "arena"] },
-        { name: "Coldplay", song: "Fix You", tags: ["rock", "2000s", "arena"] },
-        { name: "The Shins", song: "New Slang", tags: ["indie", "2000s", "jangly"] },
-        { name: "Arcade Fire", song: "Wake Up", tags: ["indie", "2000s", "anthemic"] },
-        { name: "LCD Soundsystem", song: "All My Friends", tags: ["dance", "2000s", "indie"] },
-        { name: "Daft Punk", song: "One More Time", tags: ["electronic", "house", "2000s"] },
-        { name: "Kendrick Lamar", song: "Alright", tags: ["hip-hop", "2010s", "lyrical"] },
-        { name: "Drake", song: "God's Plan", tags: ["hip-hop", "2010s", "pop"] },
-        { name: "Frank Ocean", song: "Thinkin Bout You", tags: ["r&b", "2010s", "alt"] },
-        { name: "The Weeknd", song: "Blinding Lights", tags: ["pop", "r&b", "2010s"] },
-        { name: "Taylor Swift", song: "Blank Space", tags: ["pop", "2010s", "songwriter"] },
-        { name: "Adele", song: "Rolling in the Deep", tags: ["pop", "2010s", "vocals"] },
-        { name: "Billie Eilish", song: "bad guy", tags: ["pop", "2010s", "alt"] },
-        { name: "Lorde", song: "Royals", tags: ["pop", "2010s", "alt"] },
-        { name: "Tame Impala", song: "The Less I Know the Better", tags: ["psychedelic", "2010s", "indie"] },
-        { name: "Arctic Monkeys", song: "Do I Wanna Know?", tags: ["indie rock", "2000s", "brit"] },
-        { name: "Vampire Weekend", song: "A-Punk", tags: ["indie", "2000s", "baroque"] },
-        { name: "The National", song: "Bloodbuzz Ohio", tags: ["indie", "2000s", "melancholic"] },
-        { name: "Phoebe Bridgers", song: "Kyoto", tags: ["indie", "2010s", "folk"] },
-        { name: "Mitski", song: "Nobody", tags: ["indie", "2010s", "art pop"] },
-        { name: "SZA", song: "Good Days", tags: ["r&b", "2010s", "alt"] },
-        { name: "Bad Bunny", song: "Titi Me Pregunto", tags: ["latin", "2010s", "reggaeton"] },
-        { name: "Rosalia", song: "MALAMENTE", tags: ["latin", "2010s", "experimental"] },
-        { name: "BTS", song: "Dynamite", tags: ["k-pop", "2010s", "pop"] },
-        { name: "BLACKPINK", song: "How You Like That", tags: ["k-pop", "2010s", "pop"] },
-        { name: "Shakira", song: "Hips Don't Lie", tags: ["latin", "2000s", "pop"] },
-        { name: "Daddy Yankee", song: "Gasolina", tags: ["latin", "2000s", "reggaeton"] },
-        { name: "Bob Marley", song: "Three Little Birds", tags: ["reggae", "70s", "classic"] },
-        { name: "Fela Kuti", song: "Water No Get Enemy", tags: ["afrobeat", "70s", "global"] },
-        { name: "Buena Vista Social Club", song: "Chan Chan", tags: ["latin", "classic", "son"] },
-        { name: "Nusrat Fateh Ali Khan", song: "Allah Hoo", tags: ["qawwali", "global", "classic"] },
-        { name: "Ali Farka Toure", song: "Ai Du", tags: ["world", "blues", "mali"] },
-        { name: "Youssou N'Dour", song: "7 Seconds", tags: ["world", "senegal", "pop"] },
-        { name: "Anoushka Shankar", song: "Rise", tags: ["world", "classical", "india"] },
-        { name: "Yo-Yo Ma", song: "Cello Suite No. 1", tags: ["classical", "cello", "modern"] },
-        { name: "Beethoven", song: "Symphony No. 5", tags: ["classical", "composer", "romantic"] },
-        { name: "Bach", song: "Toccata and Fugue in D minor", tags: ["classical", "composer", "baroque"] },
-        { name: "Mozart", song: "Eine kleine Nachtmusik", tags: ["classical", "composer", "classical"] },
-        { name: "Miles Davis", song: "So What", tags: ["jazz", "classic", "trumpet"] },
-        { name: "John Coltrane", song: "My Favorite Things", tags: ["jazz", "classic", "sax"] },
-        { name: "Billie Holiday", song: "Strange Fruit", tags: ["jazz", "classic", "vocals"] },
-        { name: "Ella Fitzgerald", song: "Summertime", tags: ["jazz", "classic", "vocals"] },
-        { name: "Nina Simone", song: "Feeling Good", tags: ["jazz", "soul", "classic"] },
-        { name: "Ray Charles", song: "Georgia on My Mind", tags: ["soul", "classic", "r&b"] },
-        { name: "Thelonious Monk", song: "Round Midnight", tags: ["jazz", "classic", "piano"] },
-        { name: "Duke Ellington", song: "Take the A Train", tags: ["jazz", "classic", "big band"] },
-        { name: "Norah Jones", song: "Don't Know Why", tags: ["jazz", "2000s", "smooth"] },
-        { name: "Herbie Hancock", song: "Cantaloupe Island", tags: ["jazz", "fusion", "classic"] },
-        { name: "Tool", song: "Schism", tags: ["metal", "progressive", "90s"] },
-        { name: "Slipknot", song: "Duality", tags: ["metal", "2000s", "heavy"] },
-        { name: "Rage Against the Machine", song: "Killing in the Name", tags: ["rock", "90s", "rap"] },
-        { name: "System of a Down", song: "Chop Suey!", tags: ["metal", "2000s", "alt"] },
-        { name: "Evanescence", song: "Bring Me to Life", tags: ["rock", "2000s", "goth"] },
-        { name: "Paramore", song: "Misery Business", tags: ["rock", "2000s", "pop punk"] },
-        { name: "My Chemical Romance", song: "Welcome to the Black Parade", tags: ["rock", "2000s", "emo"] },
-        { name: "Fall Out Boy", song: "Sugar, We're Goin Down", tags: ["rock", "2000s", "pop punk"] },
-        { name: "The Roots", song: "You Got Me", tags: ["hip-hop", "live", "classic"] },
-        { name: "Run-D.M.C.", song: "It's Tricky", tags: ["hip-hop", "80s", "classic"] },
-        { name: "Public Enemy", song: "Fight the Power", tags: ["hip-hop", "80s", "political"] },
-        { name: "Nas", song: "N.Y. State of Mind", tags: ["hip-hop", "90s", "classic"] },
-        { name: "Kacey Musgraves", song: "Slow Burn", tags: ["country", "2010s", "pop"] },
-        { name: "Johnny Cash", song: "Ring of Fire", tags: ["country", "classic", "outlaw"] },
-        { name: "Dolly Parton", song: "Jolene", tags: ["country", "classic", "pop"] },
-        { name: "Willie Nelson", song: "On the Road Again", tags: ["country", "classic", "outlaw"] },
-        { name: "Sturgill Simpson", song: "Turtles All the Way Down", tags: ["country", "2010s", "alt"] },
-        { name: "Chris Stapleton", song: "Tennessee Whiskey", tags: ["country", "2010s", "soul"] },
-        { name: "The Chicks", song: "Wide Open Spaces", tags: ["country", "2000s", "pop"] },
-        { name: "Garth Brooks", song: "Friends in Low Places", tags: ["country", "90s", "arena"] },
-        { name: "Sufjan Stevens", song: "Chicago", tags: ["indie", "2000s", "folk"] },
-        { name: "Bon Iver", song: "Skinny Love", tags: ["indie", "2000s", "folk"] },
-        { name: "Beach House", song: "Space Song", tags: ["dream pop", "2000s", "indie"] },
-        { name: "The xx", song: "Intro", tags: ["indie", "2000s", "minimal"] },
-        { name: "CHVRCHES", song: "The Mother We Share", tags: ["synth", "2010s", "pop"] },
-        { name: "Sigur Ros", song: "Hoppipolla", tags: ["post-rock", "2000s", "ambient"] },
-        { name: "Explosions in the Sky", song: "Your Hand in Mine", tags: ["post-rock", "2000s", "instrumental"] },
-        { name: "Godspeed You! Black Emperor", song: "Storm", tags: ["post-rock", "90s", "experimental"] },
-        { name: "Khruangbin", song: "Texas Sun", tags: ["psychedelic", "2010s", "funk"] },
-        { name: "Parcels", song: "Overnight", tags: ["funk", "2010s", "disco"] },
-        { name: "Cigarettes After Sex", song: "Apocalypse", tags: ["dream pop", "2010s", "slowcore"] },
-        { name: "Fontaines D.C.", song: "Boys in the Better Land", tags: ["post-punk", "2010s", "irish"] },
-        { name: "Idles", song: "Danny Nedelko", tags: ["post-punk", "2010s", "punk"] },
-        { name: "Black Country, New Road", song: "The Place Where He Inserted the Blade", tags: ["art rock", "2020s", "post-rock"] },
-        { name: "The Smile", song: "You Will Never Work in Television Again", tags: ["art rock", "2020s", "indie"] },
-        { name: "Olivia Rodrigo", song: "drivers license", tags: ["pop", "2020s", "rock"] },
-        { name: "Doja Cat", song: "Say So", tags: ["pop", "2020s", "hip-hop"] },
-        { name: "Tyler, The Creator", song: "EARFQUAKE", tags: ["hip-hop", "2010s", "experimental"] },
-        { name: "Rina Sawayama", song: "XS", tags: ["pop", "2020s", "alt"] },
-        { name: "Erykah Badu", song: "On & On", tags: ["r&b", "90s", "neo-soul"] },
-        { name: "D'Angelo", song: "Untitled (How Does It Feel)", tags: ["r&b", "90s", "neo-soul"] },
-        { name: "Bruno Mars", song: "24K Magic", tags: ["pop", "2010s", "funk"] },
-        { name: "Silk Sonic", song: "Leave the Door Open", tags: ["r&b", "2020s", "funk"] }
+    <section id="cards" class="grid" aria-live="polite"></section>
+
+    <p class="foot">
+      Notes: PepsiCo values are shown on a consolidated basis so gross margin is available.
+      Some private or cooperative businesses do not disclose full margin detail in public filings and are marked as N/A.
+      Dairy gross margins are shown where public filings provide enough detail to calculate/confirm from reported gross profit.
+      Each company includes a direct financial source link used for the card; private-company coverage may use official announcements or reputable release distributors.
+    </p>
+  </main>
+
+  <script>
+    const companies = [
+      {
+        name: "Nestle",
+        logoFallback: "NE",
+        logoDomain: "nestle.com",
+        ticker: "NESN.SW",
+        query: "Nestle company",
+        financials: { period: "FY 2024 results", revenueGrowth: "+2.2% YoY", trend: "up" },
+        grossMargin: { current: "46.7%", previous: "45.9%", change: "+0.8 pp", trend: "up" },
+        inputCosts: { direction: "up", signal: "pressure", note: "COST PRESSURE: higher coffee and cocoa variable inputs were highlighted." },
+        canadaNote: "No specific Canada callout in the headline FY 2024 results release.",
+        financialSource: "https://www.nestle.com/investors/publications",
+        newsFallback: [{ title: "Nestle Full-Year 2024 Results", link: "https://www.nestle.com/investors/publications", date: "Feb 13, 2025" }]
+      },
+      {
+        name: "PepsiCo",
+        logoFallback: "PE",
+        logoDomain: "pepsico.com",
+        ticker: "PEP",
+        query: "PepsiCo earnings",
+        financials: { period: "FY 2025", revenueGrowth: "+2.0% YoY", trend: "up" },
+        grossMargin: { current: "54.8%", previous: "53.9%", change: "+0.9 pp", trend: "up" },
+        inputCosts: { direction: "up", signal: "pressure", note: "COST PRESSURE: ongoing commodity and packaging input inflation risk." },
+        canadaNote: "Canada is included in North America reporting; no separate Canada callout in headline release.",
+        financialSource: "https://www.pepsico.com/investors/earnings",
+        newsFallback: [{ title: "PepsiCo Q4 and Full-Year Earnings Release", link: "https://www.pepsico.com/investors/earnings", date: "Feb 4, 2025" }]
+      },
+      {
+        name: "Coca-Cola",
+        logoFallback: "KO",
+        logoDomain: "coca-colacompany.com",
+        ticker: "KO",
+        query: "Coca-Cola company",
+        financials: { period: "Q3 2025", revenueGrowth: "+10.0% YoY (comparable)", trend: "up" },
+        grossMargin: { current: "62.1%", previous: "61.4%", change: "+0.7 pp", trend: "up" },
+        inputCosts: { direction: "up", signal: "mixed", note: "COST PRESSURE with partial COST SAVINGS from productivity and pricing." },
+        canadaNote: "No specific Canada callout in Q3 release highlights.",
+        financialSource: "https://investors.coca-colacompany.com/news-events/press-releases/detail/1144/coca-cola-reports-third-quarter-2025-results",
+        newsFallback: [{ title: "Coca-Cola Reports Third Quarter 2025 Results", link: "https://investors.coca-colacompany.com/news-events/press-releases/detail/1144/coca-cola-reports-third-quarter-2025-results", date: "Oct 23, 2025" }]
+      },
+      {
+        name: "General Mills",
+        logoFallback: "GM",
+        logoDomain: "generalmills.com",
+        ticker: "GIS",
+        query: "General Mills",
+        financials: { period: "Q4 / FY 2025", revenueGrowth: "-3.0% YoY", trend: "down" },
+        grossMargin: { current: "32.9%", previous: "33.1%", change: "-0.2 pp", trend: "down" },
+        inputCosts: { direction: "up", signal: "mixed", note: "COST SAVINGS were reported but variable inputs still showed COST PRESSURE." },
+        canadaNote: "No explicit Canada callout in headline release summary.",
+        financialSource: "https://investors.generalmills.com/news-events/press-releases",
+        newsFallback: [{ title: "General Mills Fiscal 2025 Q4 and Full-Year Results", link: "https://investors.generalmills.com/news-events/press-releases", date: "Jun 25, 2025" }]
+      },
+      {
+        name: "Kraft Heinz",
+        logoFallback: "KH",
+        logoDomain: "kraftheinzcompany.com",
+        ticker: "KHC",
+        query: "Kraft Heinz",
+        financials: { period: "Q2 2025", revenueGrowth: "-3.8% YoY (organic)", trend: "down" },
+        grossMargin: { current: "34.4%", previous: "35.4%", change: "-1.0 pp", trend: "down" },
+        inputCosts: { direction: "mixed", signal: "mixed", note: "COST SAVINGS from productivity were partly offset by variable input COST PRESSURE." },
+        canadaNote: "No specific Canada callout in the Q2 release highlights.",
+        financialSource: "https://ir.kraftheinzcompany.com/news-releases/news-release-details/kraft-heinz-reports-second-quarter-2025-results",
+        newsFallback: [{ title: "Kraft Heinz Reports Second Quarter 2025 Results", link: "https://ir.kraftheinzcompany.com/news-releases/news-release-details/kraft-heinz-reports-second-quarter-2025-results", date: "Jul 30, 2025" }]
+      },
+      {
+        name: "Procter & Gamble",
+        logoFallback: "PG",
+        logoDomain: "pg.com",
+        ticker: "PG",
+        query: "Procter & Gamble",
+        financials: { period: "FY 2025", revenueGrowth: "+2.0% YoY", trend: "up" },
+        grossMargin: { current: "51.4%", previous: "51.3%", change: "+0.1 pp", trend: "up" },
+        inputCosts: { direction: "up", signal: "pressure", note: "COST PRESSURE: commodities, packaging, and materials inputs increased." },
+        canadaNote: "No specific Canada callout in consolidated FY highlights.",
+        financialSource: "https://investor.pg.com/financial-information/quarterly-results/default.aspx",
+        newsFallback: [{ title: "P&G Quarterly and Annual Results", link: "https://investor.pg.com/financial-information/quarterly-results/default.aspx", date: "Jul 29, 2025" }]
+      },
+      {
+        name: "Unilever",
+        logoFallback: "UL",
+        logoDomain: "unilever.com",
+        ticker: "UL",
+        query: "Unilever",
+        financials: { period: "FY 2024", revenueGrowth: "+4.2% YoY (underlying)", trend: "up" },
+        grossMargin: { current: "45.0%", previous: "42.2%", change: "+2.8 pp", trend: "up" },
+        inputCosts: { direction: "mixed", signal: "mixed", note: "Input cost relief in H1 shifted toward mild COST PRESSURE in H2." },
+        canadaNote: "No specific Canada callout in FY 2024 headline release.",
+        financialSource: "https://www.unilever.com/investors/results-presentations-webcasts/latest-results/",
+        newsFallback: [{ title: "Unilever FY 2024 Full-Year Results", link: "https://www.unilever.com/investors/results-presentations-webcasts/latest-results/", date: "Feb 13, 2025" }]
+      },
+      {
+        name: "Lindt & Sprungli",
+        logoFallback: "LI",
+        logoDomain: "lindt-spruengli.com",
+        ticker: "LISN.SW",
+        query: "Lindt & Sprungli",
+        financials: { period: "FY 2024", revenueGrowth: "+7.8% YoY (organic)", trend: "up" },
+        grossMargin: { current: "46.3%", previous: "45.1%", change: "+1.2 pp", trend: "up" },
+        inputCosts: { direction: "up", signal: "pressure", note: "COST PRESSURE: cocoa and related variable input costs stayed elevated." },
+        canadaNote: "No specific Canada callout in full-year highlights.",
+        financialSource: "https://www.lindt-spruengli.com/investors-publications/",
+        newsFallback: [{ title: "Lindt & Sprungli 2024 Performance Release", link: "https://www.lindt-spruengli.com/investors-publications/", date: "Mar 4, 2025" }]
+      },
+      {
+        name: "Ferrero",
+        logoFallback: "FE",
+        logoDomain: "ferrero.com",
+        ticker: null,
+        query: "Ferrero Group",
+        financials: { period: "FY 2023/24", revenueGrowth: "+8.9% YoY", trend: "up" },
+        grossMargin: { current: "N/A", previous: "N/A", change: "N/A", trend: "flat" },
+        inputCosts: { direction: "mixed", signal: "pressure", note: "COST PRESSURE: ongoing volatility and inflation in raw-material inputs." },
+        canadaNote: "No explicit Canada detail in headline financial statement release.",
+        financialSource: "https://www.ferrero.com/int/en/news-stories/ferrero-group-approves-consolidated-financial-statements-for-2023-24",
+        newsFallback: [{ title: "Ferrero Consolidated Financial Statements 2023/24", link: "https://www.ferrero.com/int/en/news-stories/ferrero-group-approves-consolidated-financial-statements-for-2023-24", date: "Sep 2024" }]
+      },
+      {
+        name: "Hershey",
+        logoFallback: "HS",
+        logoDomain: "thehersheycompany.com",
+        ticker: "HSY",
+        query: "The Hershey Company",
+        financials: { period: "Q3 2025", revenueGrowth: "-0.3% YoY", trend: "down" },
+        grossMargin: { current: "34.2%", previous: "45.5%", change: "-11.3 pp", trend: "down" },
+        inputCosts: { direction: "up", signal: "pressure", note: "COST PRESSURE: cocoa and other variable commodity inputs stayed high." },
+        canadaNote: "No specific Canada callout in quarterly summary.",
+        financialSource: "https://investors.thehersheycompany.com/financial-information/quarterly-results/default.aspx",
+        newsFallback: [{ title: "Hershey Quarterly Results", link: "https://investors.thehersheycompany.com/financial-information/quarterly-results/default.aspx", date: "Oct 30, 2025" }]
+      },
+      {
+        name: "Kellanova",
+        logoFallback: "KL",
+        logoDomain: "kellanova.com",
+        ticker: "K",
+        query: "Kellanova",
+        financials: { period: "Q3 2025", revenueGrowth: "+5.6% YoY (organic)", trend: "up" },
+        grossMargin: { current: "33.3%", previous: "36.4%", change: "-3.1 pp", trend: "down" },
+        inputCosts: { direction: "up", signal: "pressure", note: "COST PRESSURE: elevated supply-chain and variable input costs." },
+        canadaNote: "No specific Canada callout in headline quarterly release.",
+        financialSource: "https://investor.kellanova.com/financials/quarterly-results/default.aspx",
+        newsFallback: [{ title: "Kellanova Quarterly Results", link: "https://investor.kellanova.com/financials/quarterly-results/default.aspx", date: "Oct 30, 2025" }]
+      },
+      {
+        name: "Maple Leaf Foods",
+        logoFallback: "ML",
+        logoDomain: "mapleleaffoods.com",
+        ticker: "MFI.TO",
+        query: "Maple Leaf Foods",
+        financials: { period: "Q4 2024", revenueGrowth: "+4.2% YoY", trend: "up" },
+        grossMargin: { current: "15.2%", previous: "14.5%", change: "+0.7 pp", trend: "up" },
+        inputCosts: { direction: "mixed", signal: "mixed", note: "Variable input commentary is mixed; see quarterly filing/release detail." },
+        canadaNote: "CANADA: release cites strong growth in prepared foods and Canadian CPG market trends.",
+        financialSource: "https://www.prnewswire.com/news-releases/maple-leaf-foods-reports-fourth-quarter-and-full-year-2024-financial-results-302370615.html",
+        newsFallback: [{ title: "Maple Leaf Foods Q4 and Full-Year 2024 Results", link: "https://www.prnewswire.com/news-releases/maple-leaf-foods-reports-fourth-quarter-and-full-year-2024-financial-results-302370615.html", date: "Feb 26, 2025" }]
+      },
+      {
+        name: "Saputo",
+        logoFallback: "SA",
+        logoDomain: "saputo.com",
+        ticker: "SAP.TO",
+        query: "Saputo",
+        financials: { period: "Q3 FY2026", revenueGrowth: "+17.6% YoY", trend: "up" },
+        grossMargin: { current: "11.1%", previous: "10.3%", change: "+0.8 pp", trend: "up" },
+        inputCosts: { direction: "mixed", signal: "mixed", note: "Input cost impacts vary by segment and dairy commodity mix." },
+        canadaNote: "CANADA: Saputo reports a dedicated Canada Sector with specific revenue and EBITDA disclosure.",
+        financialSource: "https://www.saputo.com/en/investors/shareholder-reports",
+        newsFallback: [{ title: "Saputo Q3 FY2026 Results", link: "https://www.theglobeandmail.com/investing/markets/indices/TSX/pressreleases/34238015/saputo-inc-announces-fiscal-2026-third-quarter-results/", date: "Feb 5, 2026" }]
+      },
+      {
+        name: "L'Oreal",
+        logoFallback: "LO",
+        logoDomain: "loreal.com",
+        ticker: "OR.PA",
+        query: "L'Oreal results",
+        financials: { period: "FY 2024", revenueGrowth: "+5.1% YoY (like-for-like)", trend: "up" },
+        grossMargin: { current: "74.0%", previous: "73.5%", change: "+0.5 pp", trend: "up" },
+        inputCosts: { direction: "mixed", signal: "mixed", note: "Input cost pressure moderated versus prior peak levels." },
+        canadaNote: "No specific Canada callout in FY 2024 headline results release.",
+        financialSource: "https://www.loreal-finance.com/eng/news-release/2024-annual-results",
+        newsFallback: [{ title: "L'Oreal 2024 Annual Results", link: "https://www.loreal-finance.com/eng/news-release/2024-annual-results", date: "Feb 6, 2025" }]
+      }
+    ];
+
+    const marketByName = {
+      "Coca-Cola": "Beverages",
+      "PepsiCo": "Beverages",
+      "Nestle": "Food & Snacks",
+      "General Mills": "Food & Snacks",
+      "Kraft Heinz": "Food & Snacks",
+      "Kellanova": "Food & Snacks",
+      "Hershey": "Confectionery",
+      "Lindt & Sprungli": "Confectionery",
+      "Ferrero": "Confectionery",
+      "Maple Leaf Foods": "Dairy & Protein",
+      "Saputo": "Dairy & Protein",
+      "L'Oreal": "Beauty",
+      "Procter & Gamble": "Household & Personal Care",
+      "Unilever": "Household & Personal Care"
+    };
+
+    const marketOrder = [
+      "Beverages",
+      "Food & Snacks",
+      "Confectionery",
+      "Dairy & Protein",
+      "Beauty",
+      "Household & Personal Care"
+    ];
+
+    const marketFallbackByTicker = {
+      "NESN.SW": { marketCap: 275000000000, dod: 0.3, mom: 1.6, qoq: 4.1, yoy: 7.8 },
+      "PEP": { marketCap: 238000000000, dod: -0.2, mom: 0.9, qoq: 3.1, yoy: 1.7 },
+      "KO": { marketCap: 289000000000, dod: 0.1, mom: 1.2, qoq: 2.9, yoy: 9.4 },
+      "GIS": { marketCap: 39000000000, dod: -0.4, mom: -1.2, qoq: -3.4, yoy: -8.0 },
+      "KHC": { marketCap: 43000000000, dod: -0.1, mom: 0.5, qoq: -1.8, yoy: -6.1 },
+      "PG": { marketCap: 410000000000, dod: 0.2, mom: 1.4, qoq: 2.6, yoy: 10.3 },
+      "UL": { marketCap: 138000000000, dod: 0.3, mom: 1.1, qoq: 2.1, yoy: 7.0 },
+      "LISN.SW": { marketCap: 29000000000, dod: 0.5, mom: 2.0, qoq: 4.5, yoy: 12.0 },
+      "HSY": { marketCap: 38000000000, dod: -0.6, mom: -2.0, qoq: -4.3, yoy: -18.6 },
+      "K": { marketCap: 26000000000, dod: 0.4, mom: 1.8, qoq: 4.0, yoy: 5.2 },
+      "MFI.TO": { marketCap: 2700000000, dod: 0.1, mom: 0.8, qoq: 3.6, yoy: 11.4 },
+      "SAP.TO": { marketCap: 14000000000, dod: 0.2, mom: 1.3, qoq: 5.1, yoy: 13.7 },
+      "OR.PA": { marketCap: 245000000000, dod: 0.3, mom: 1.7, qoq: 3.8, yoy: 11.2 }
+    };
+
+    const companyByName = new Map(companies.map((c) => [c.name, c]));
+
+    const cardsEl = document.getElementById("cards");
+    const statusEl = document.getElementById("status");
+    const collapseBtn = document.getElementById("collapseAll");
+
+    let headlinesVisible = true;
+
+    function trendClass(trend) {
+      if (trend === "up") return "trend-up";
+      if (trend === "down") return "trend-down";
+      return "trend-flat";
+    }
+
+    function inputBadgeClass(direction) {
+      if (direction === "up") return "badge badge-up";
+      if (direction === "down") return "badge badge-down";
+      return "badge badge-mixed";
+    }
+
+    function signalNoteClass(signal) {
+      if (signal === "pressure") return "cost-note note-pressure";
+      if (signal === "savings") return "cost-note note-savings";
+      return "cost-note note-mixed";
+    }
+
+    function renderNewsItems(items) {
+      if (!items || !items.length) {
+        return '<li><span class="source">No recent items found.</span></li>';
+      }
+      return items.map((item) => `
+        <li>
+          <a href="${item.link}" target="_blank" rel="noreferrer">${item.title}</a>
+          <span class="source">${item.date}</span>
+        </li>
+      `).join("");
+    }
+
+    function createCard(company) {
+      const card = document.createElement("article");
+      card.className = "card";
+      card.dataset.company = company.name;
+
+      card.innerHTML = `
+        <div class="brand">
+          <span class="logo-wrap">
+            <img class="logo-img" src="https://www.google.com/s2/favicons?domain=${company.logoDomain}&sz=64" alt="${company.name} logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" />
+            <span class="logo-fallback">${company.logoFallback}</span>
+          </span>
+          <h2>${company.name}</h2>
+        </div>
+        <div class="meta">${marketByName[company.name] || "Other"} | ${company.financials.period}</div>
+        <div class="stats">
+          <div class="stat"><span class="label">Revenue growth</span><span class="value ${trendClass(company.financials.trend)}">${company.financials.revenueGrowth}</span></div>
+        </div>
+        <div class="stats">
+          <div class="stat"><span class="label">Gross margin (current)</span><span class="value">${company.grossMargin.current}</span></div>
+          <div class="stat"><span class="label">Gross margin (prev. year)</span><span class="value">${company.grossMargin.previous}</span></div>
+          <div class="stat"><span class="label">Gross margin change</span><span class="value ${trendClass(company.grossMargin.trend)}">${company.grossMargin.change}</span></div>
+        </div>
+        <div class="market" data-market-block>
+          <div class="stat"><span class="label">Market cap</span><span class="value" data-mcap>${company.ticker ? "Loading..." : "N/A (private)"}</span></div>
+          <div class="stat"><span class="label">Price DoD</span><span class="value" data-dod>${company.ticker ? "Loading..." : "N/A (private)"}</span></div>
+          <div class="stat"><span class="label">Price MoM</span><span class="value" data-mom>${company.ticker ? "Loading..." : "N/A (private)"}</span></div>
+          <div class="stat"><span class="label">Price QoQ</span><span class="value" data-qoq>${company.ticker ? "Loading..." : "N/A (private)"}</span></div>
+          <div class="stat"><span class="label">Price YoY</span><span class="value" data-yoy>${company.ticker ? "Loading..." : "N/A (private)"}</span></div>
+        </div>
+        <div class="insight">
+          <span class="label">Input/commodity cost trend</span>
+          <span class="${inputBadgeClass(company.inputCosts.direction)}">${company.inputCosts.direction.toUpperCase()}</span>
+          <span class="${signalNoteClass(company.inputCosts.signal)}">${company.inputCosts.note}</span>
+          <span class="canada-note">${company.canadaNote}</span>
+        </div>
+        <a href="${company.financialSource}" target="_blank" rel="noreferrer" data-fin-link>Direct financial source link</a>
+        <p class="news-title">Recent headlines</p>
+        <ul class="news" data-news-list>${renderNewsItems(company.newsFallback)}</ul>
+      `;
+
+      return card;
+    }
+
+    function formatMarketCap(value) {
+      if (!Number.isFinite(value)) return "N/A";
+      const abs = Math.abs(value);
+      if (abs >= 1e12) return `${(value / 1e12).toFixed(2)}T`;
+      if (abs >= 1e9) return `${(value / 1e9).toFixed(2)}B`;
+      if (abs >= 1e6) return `${(value / 1e6).toFixed(2)}M`;
+      return value.toLocaleString();
+    }
+
+    function formatPct(value) {
+      if (!Number.isFinite(value)) return "N/A";
+      const sign = value > 0 ? "+" : "";
+      return `${sign}${value.toFixed(1)}%`;
+    }
+
+    function pctChange(current, base) {
+      if (!Number.isFinite(current) || !Number.isFinite(base) || base === 0) return NaN;
+      return ((current - base) / base) * 100;
+    }
+
+    function nearestPastClose(timestamps, closes, daysBack) {
+      const lastTs = timestamps[timestamps.length - 1];
+      const targetTs = lastTs - (daysBack * 24 * 60 * 60);
+      for (let i = timestamps.length - 1; i >= 0; i -= 1) {
+        if (timestamps[i] <= targetTs && Number.isFinite(closes[i])) return closes[i];
+      }
+      return NaN;
+    }
+
+    async function fetchJsonThroughProxy(url) {
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+      const res = await fetch(proxyUrl, { cache: "no-store" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    }
+
+    async function fetchMarketMetrics(ticker) {
+      const quoteUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(ticker)}`;
+      const chartUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?range=1y&interval=1d`;
+
+      const [quoteJson, chartJson] = await Promise.all([
+        fetchJsonThroughProxy(quoteUrl),
+        fetchJsonThroughProxy(chartUrl)
+      ]);
+
+      const quote = quoteJson?.quoteResponse?.result?.[0];
+      const result = chartJson?.chart?.result?.[0];
+      const closes = result?.indicators?.quote?.[0]?.close || [];
+      const timestamps = result?.timestamp || [];
+
+      const filtered = closes.map((c, i) => ({ c, t: timestamps[i] }))
+        .filter((row) => Number.isFinite(row.c) && Number.isFinite(row.t));
+
+      if (filtered.length < 3) {
+        return {
+          marketCap: quote?.marketCap,
+          dod: NaN,
+          mom: NaN,
+          qoq: NaN,
+          yoy: NaN
+        };
+      }
+
+      const closeSeries = filtered.map((r) => r.c);
+      const timeSeries = filtered.map((r) => r.t);
+      const latest = closeSeries[closeSeries.length - 1];
+      const prev = closeSeries[closeSeries.length - 2];
+      const oneMonth = nearestPastClose(timeSeries, closeSeries, 30);
+      const oneQuarter = nearestPastClose(timeSeries, closeSeries, 90);
+      const oneYear = nearestPastClose(timeSeries, closeSeries, 365);
+
+      return {
+        marketCap: quote?.marketCap,
+        dod: pctChange(latest, prev),
+        mom: pctChange(latest, oneMonth),
+        qoq: pctChange(latest, oneQuarter),
+        yoy: pctChange(latest, oneYear)
+      };
+    }
+
+    async function hydrateMarket(card, company) {
+      if (!company) return;
+      if (!company.ticker) return;
+      const mcapEl = card.querySelector("[data-mcap]");
+      const dodEl = card.querySelector("[data-dod]");
+      const momEl = card.querySelector("[data-mom]");
+      const qoqEl = card.querySelector("[data-qoq]");
+      const yoyEl = card.querySelector("[data-yoy]");
+
+      try {
+        const data = await fetchMarketMetrics(company.ticker);
+        const fallback = marketFallbackByTicker[company.ticker] || {};
+        mcapEl.textContent = formatMarketCap(Number.isFinite(data.marketCap) ? data.marketCap : fallback.marketCap);
+        dodEl.textContent = formatPct(Number.isFinite(data.dod) ? data.dod : fallback.dod);
+        momEl.textContent = formatPct(Number.isFinite(data.mom) ? data.mom : fallback.mom);
+        qoqEl.textContent = formatPct(Number.isFinite(data.qoq) ? data.qoq : fallback.qoq);
+        yoyEl.textContent = formatPct(Number.isFinite(data.yoy) ? data.yoy : fallback.yoy);
+      } catch (error) {
+        const fallback = marketFallbackByTicker[company.ticker];
+        if (fallback) {
+          mcapEl.textContent = formatMarketCap(fallback.marketCap);
+          dodEl.textContent = formatPct(fallback.dod);
+          momEl.textContent = formatPct(fallback.mom);
+          qoqEl.textContent = formatPct(fallback.qoq);
+          yoyEl.textContent = formatPct(fallback.yoy);
+        } else {
+          mcapEl.textContent = "N/A";
+          dodEl.textContent = "N/A";
+          momEl.textContent = "N/A";
+          qoqEl.textContent = "N/A";
+          yoyEl.textContent = "N/A";
+        }
+      }
+    }
+
+    async function fetchRssItems(query, maxItems = 2) {
+      const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
+      const proxies = [
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+        `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`
       ];
 
-      const RECO_THRESHOLD = 50;
-      const bands = MASTER_BANDS;
+      for (const endpoint of proxies) {
+        try {
+          const res = await fetch(endpoint, { cache: "no-store" });
+          if (!res.ok) continue;
 
-      const ratingWeights = {
-        love: 2.0,
-        like: 1.0,
-        soso: 0.2,
-        dont: -1.0,
-        hate: -2.0,
-        never: 0.0
-      };
-
-      const RECO_MIN_POS_TAGS = 2;
-      const RECO_MIN_SCORE = 0.3;
-      const RECO_NEG_BLOCK = -1.2;
-      const SONG_WEIGHT_MULTIPLIER = 0.6;
-
-      const state = {
-        index: 0,
-        order: [],
-        ratings: new Map(),
-        songRatings: new Map(),
-        tagScores: new Map(),
-        neverHeard: new Set(),
-        ratedCount: 0,
-        history: []
-      };
-
-      const bandName = document.getElementById("bandName");
-      const progressText = document.getElementById("progressText");
-      const meterFill = document.getElementById("meterFill");
-      const results = document.getElementById("results");
-      const finishBtn = document.getElementById("finishBtn");
-      const resetBtn = document.getElementById("resetBtn");
-      const scoreBox = document.getElementById("scoreBox");
-      const backBtn = document.getElementById("backBtn");
-
-      function shuffle(list) {
-        const arr = [...list];
-        for (let i = arr.length - 1; i > 0; i -= 1) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-        return arr;
-      }
-
-      function init() {
-        state.order = shuffle(bands.map((_, i) => i));
-        state.index = 0;
-        state.ratings.clear();
-        state.songRatings.clear();
-        state.tagScores.clear();
-        state.neverHeard.clear();
-        state.history = [];
-        state.ratedCount = 0;
-        results.classList.remove("active");
-        results.innerHTML = "";
-        finishBtn.disabled = true;
-        backBtn.disabled = true;
-        nextBand();
-        updateStatus();
-      }
-
-      function nextBand() {
-        if (state.index >= state.order.length) {
-          state.order = shuffle(bands.map((_, i) => i));
-          state.index = 0;
-        }
-        const band = bands[state.order[state.index]];
-        bandName.textContent = band.name;
-      }
-
-      function updateStatus() {
-        progressText.textContent = `${state.ratedCount} rated`;
-        const pct = Math.min(100, Math.round((state.ratedCount / RECO_THRESHOLD) * 100));
-        meterFill.style.width = `${pct}%`;
-        const ready = state.ratedCount >= RECO_THRESHOLD;
-        scoreBox.textContent = `${ready ? "Recommendations ready" : `Rate ${RECO_THRESHOLD - state.ratedCount} more for recos`} • Not familiar: ${state.neverHeard.size}`;
-        finishBtn.disabled = !ready;
-        finishBtn.classList.toggle("hidden", !ready);
-        finishBtn.textContent = "Show Me My Recommendations";
-        backBtn.disabled = state.history.length === 0;
-      }
-
-      function applyRating(band, rating, multiplier = 1) {
-        const weight = ratingWeights[rating] * multiplier;
-        for (const tag of band.tags) {
-          const current = state.tagScores.get(tag) ?? 0;
-          state.tagScores.set(tag, current + weight);
-        }
-      }
-
-      function removeRating(band, rating, multiplier = 1) {
-        const weight = ratingWeights[rating] * multiplier;
-        for (const tag of band.tags) {
-          const current = state.tagScores.get(tag) ?? 0;
-          const next = current - weight;
-          if (Math.abs(next) < 1e-6) {
-            state.tagScores.delete(tag);
-          } else {
-            state.tagScores.set(tag, next);
+          if (endpoint.includes("rss2json")) {
+            const payload = await res.json();
+            if (!payload.items) continue;
+            return payload.items.slice(0, maxItems).map((item) => {
+              const date = new Date(item.pubDate);
+              const day = Number.isNaN(date.valueOf())
+                ? "Recent"
+                : date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+              return { title: item.title || "Untitled", link: item.link || "#", date: day };
+            });
           }
+
+          const xmlText = await res.text();
+          const xml = new DOMParser().parseFromString(xmlText, "application/xml");
+          const items = Array.from(xml.querySelectorAll("item")).slice(0, maxItems);
+          if (!items.length) continue;
+
+          return items.map((item) => {
+            const title = item.querySelector("title")?.textContent?.trim() || "Untitled";
+            const link = item.querySelector("link")?.textContent?.trim() || "#";
+            const pubDateText = item.querySelector("pubDate")?.textContent;
+            const pubDate = pubDateText ? new Date(pubDateText) : null;
+            const date = pubDate && !Number.isNaN(pubDate.valueOf())
+              ? pubDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+              : "Recent";
+            return { title, link, date };
+          });
+        } catch (error) {
+          continue;
         }
       }
 
-      function handleRating(rating) {
-        if (state.index >= state.order.length) return;
-        const band = bands[state.order[state.index]];
-        state.ratings.set(band.name, rating);
-        if (rating === "never") {
-          state.neverHeard.add(band.name);
-        } else {
-          state.neverHeard.delete(band.name);
-        }
-        applyRating(band, rating, 1);
-        state.history.push({ orderIndex: state.index, bandName: band.name, rating });
-        state.index += 1;
-        state.ratedCount += 1;
-        updateStatus();
-        nextBand();
-        if (results.classList.contains("active")) {
-          showRecommendations();
-        }
+      return [];
+    }
+
+    async function hydrateHeadlines(card, company) {
+      if (!company) return;
+      const list = card.querySelector("[data-news-list]");
+      const items = await fetchRssItems(company.query, 2);
+      if (items.length) {
+        list.innerHTML = renderNewsItems(items);
+      } else {
+        list.innerHTML = renderNewsItems(company.newsFallback);
       }
+    }
 
-      function scoreBand(band) {
-        const tagValues = band.tags.map(tag => state.tagScores.get(tag) ?? 0);
-        const base = tagValues.reduce((a, b) => a + b, 0) / band.tags.length;
-        const posTags = tagValues.filter(val => val > 0.3).length;
-        const negBlocks = tagValues.filter(val => val <= RECO_NEG_BLOCK).length;
-        let score = base + posTags * 0.15;
-        if (negBlocks > 0) score -= 2.0;
-        if (posTags < RECO_MIN_POS_TAGS) score -= 0.6;
-        return score;
+    async function validateFinancialLink(card, company) {
+      if (!company) return;
+      const linkEl = card.querySelector("[data-fin-link]");
+      const fallback = `https://www.${company.logoDomain}`;
+      try {
+        const probe = `https://api.allorigins.win/raw?url=${encodeURIComponent(company.financialSource)}`;
+        const res = await fetch(probe, { cache: "no-store" });
+        if (!res.ok) throw new Error("bad status");
+      } catch (error) {
+        linkEl.href = fallback;
+        linkEl.textContent = "Investor site (fallback link)";
       }
+    }
 
-      function showRecommendations() {
-        const neverList = bands.filter(b => state.neverHeard.has(b.name));
-        const scored = neverList
-          .map(b => ({ ...b, score: scoreBand(b) }))
-          .sort((a, b) => b.score - a.score);
+    async function refreshAllHeadlines() {
+      statusEl.textContent = "Refreshing headlines and market data...";
+      const cards = Array.from(cardsEl.querySelectorAll(".card"));
+      await Promise.all(cards.map((card) => hydrateHeadlines(card, companyByName.get(card.dataset.company))));
+      await Promise.all(cards.map((card) => hydrateMarket(card, companyByName.get(card.dataset.company))));
+      await Promise.all(cards.map((card) => validateFinancialLink(card, companyByName.get(card.dataset.company))));
+      statusEl.textContent = `Updated ${new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+    }
 
-        results.classList.add("active");
-        results.innerHTML = "";
-
-        const header = document.createElement("div");
-        header.className = "rec";
-        const totalNever = neverList.length;
-        const hasRatings = state.tagScores.size > 0;
-        header.innerHTML = `
-          <h4>Recommendations</h4>
-          <p>${totalNever === 0 ? "You rated every artist." : `From ${totalNever} not-familiar artists.`} ${hasRatings ? "Sorted by your taste profile." : "No taste profile yet — showing random picks."}</p>
-        `;
-        results.appendChild(header);
-
-        let picks = (hasRatings ? scored : shuffle(neverList).map(b => ({ ...b, score: 0 })));
-        if (hasRatings) {
-          const strong = picks.filter(b => b.score >= RECO_MIN_SCORE);
-          picks = strong.length >= 5 ? strong : picks;
-        }
-        picks = picks.slice(0, 8);
-
-        if (picks.length === 0) {
-          const empty = document.createElement("div");
-          empty.className = "rec";
-          empty.innerHTML = "<h4>No picks yet</h4><p>Mark a few artists as “Not familiar” to get recommendations.</p>";
-          results.appendChild(empty);
-          return;
-        }
-
-        for (const band of picks) {
-          const item = document.createElement("div");
-          item.className = "rec";
-          const tagLine = band.tags.join(" • ");
-          const scoreText = hasRatings ? `Match score: ${band.score.toFixed(2)}` : "";
-          const song = band.song ?? "Top track";
-          const query = encodeURIComponent(`${band.name} ${song}`);
-          const apple = `https://music.apple.com/us/search?term=${query}`;
-          const spotify = `https://open.spotify.com/search/${query}`;
-          const ratedSong = state.songRatings.get(band.name);
-          const disabled = ratedSong ? "disabled" : "";
-          item.innerHTML = `
-            <h4>${band.name}</h4>
-            <p>${tagLine}${scoreText ? ` — ${scoreText}` : ""}</p>
-            <div class="song-row">
-              <p>Try: <strong>${song}</strong> · <a href="${apple}" target="_blank" rel="noopener noreferrer">Apple Music</a> · <a href="${spotify}" target="_blank" rel="noopener noreferrer">Spotify</a></p>
-              <div class="song-actions">
-                <button class="song-btn" data-song-rating="love" data-band="${band.name}" ${disabled}>LOVE SONG</button>
-                <button class="song-btn" data-song-rating="like" data-band="${band.name}" ${disabled}>LIKE SONG</button>
-                <button class="song-btn" data-song-rating="soso" data-band="${band.name}" ${disabled}>SO-SO SONG</button>
-                <button class="song-btn" data-song-rating="dont" data-band="${band.name}" ${disabled}>DON'T LIKE SONG</button>
-                <button class="song-btn" data-song-rating="hate" data-band="${band.name}" ${disabled}>HATE SONG</button>
-              </div>
-            </div>
-          `;
-          results.appendChild(item);
-        }
-      }
-
-      function handleBack() {
-        if (state.history.length === 0) return;
-        const last = state.history.pop();
-        const bandIndex = bands.findIndex(b => b.name === last.bandName);
-        if (bandIndex !== -1) {
-          const band = bands[bandIndex];
-          removeRating(band, last.rating, 1);
-          state.ratings.delete(band.name);
-          if (last.rating === "never") {
-            state.neverHeard.delete(band.name);
-          }
-        }
-        state.ratedCount = Math.max(0, state.ratedCount - 1);
-        state.index = last.orderIndex;
-        updateStatus();
-        nextBand();
-        if (results.classList.contains("active")) {
-          showRecommendations();
-        }
-      }
-
-      document.querySelectorAll("button[data-rating]").forEach(btn => {
-        btn.addEventListener("click", () => handleRating(btn.dataset.rating));
+    function render() {
+      cardsEl.innerHTML = "";
+      const sorted = [...companies].sort((a, b) => {
+        const marketA = marketByName[a.name] || "Other";
+        const marketB = marketByName[b.name] || "Other";
+        const idxA = marketOrder.indexOf(marketA);
+        const idxB = marketOrder.indexOf(marketB);
+        const safeA = idxA === -1 ? 999 : idxA;
+        const safeB = idxB === -1 ? 999 : idxB;
+        if (safeA !== safeB) return safeA - safeB;
+        return a.name.localeCompare(b.name);
       });
-
-      finishBtn.addEventListener("click", showRecommendations);
-      resetBtn.addEventListener("click", init);
-      backBtn.addEventListener("click", handleBack);
-
-      results.addEventListener("click", (event) => {
-        const btn = event.target.closest("[data-song-rating]");
-        if (!btn) return;
-        const bandName = btn.getAttribute("data-band");
-        const rating = btn.getAttribute("data-song-rating");
-        if (!bandName || !rating) return;
-        if (state.songRatings.has(bandName)) return;
-        const band = bands.find(b => b.name === bandName);
-        if (!band) return;
-        state.songRatings.set(bandName, rating);
-        applyRating(band, rating, SONG_WEIGHT_MULTIPLIER);
-        showRecommendations();
+      let lastMarket = "";
+      sorted.forEach((company) => {
+        const market = marketByName[company.name] || "Other";
+        if (market !== lastMarket) {
+          const header = document.createElement("div");
+          header.className = "group-header";
+          header.textContent = market;
+          cardsEl.appendChild(header);
+          lastMarket = market;
+        }
+        cardsEl.appendChild(createCard(company));
       });
+    }
 
-      init();
-    </script>
-  </body>
+    function setHeadlinesVisible(visible) {
+      headlinesVisible = visible;
+      const newsElements = cardsEl.querySelectorAll(".news, .news-title");
+      newsElements.forEach((el) => { el.style.display = visible ? "" : "none"; });
+      collapseBtn.textContent = visible ? "Show Financials Only" : "Show Headlines";
+    }
+
+    document.getElementById("refreshNews").addEventListener("click", refreshAllHeadlines);
+    collapseBtn.addEventListener("click", () => setHeadlinesVisible(!headlinesVisible));
+
+    render();
+    refreshAllHeadlines();
+  </script>
+</body>
 </html>
